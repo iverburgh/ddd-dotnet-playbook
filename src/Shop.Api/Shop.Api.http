@@ -1,0 +1,52 @@
+# Walk through the whole flow. Run the requests top to bottom; the ids flow from one response to the next.
+@baseUrl = http://localhost:5080
+
+### 1. Start a draft order
+# @name start
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{ "customerId": "{{$guid}}", "currency": "EUR" }
+
+### 2. Add a line
+POST {{baseUrl}}/orders/{{start.response.body.$.id}}/lines
+Content-Type: application/json
+
+{ "productCode": "BOOK-1984", "quantity": 2, "unitPrice": 12.50, "currency": "EUR" }
+
+### 3. A business rule says no: wrong currency -> 422 with code order.currency-mismatch
+POST {{baseUrl}}/orders/{{start.response.body.$.id}}/lines
+Content-Type: application/json
+
+{ "productCode": "PEN-BLUE", "quantity": 1, "unitPrice": 2.00, "currency": "USD" }
+
+### 4. Input that can never be valid: quantity 0 -> 400
+POST {{baseUrl}}/orders/{{start.response.body.$.id}}/lines
+Content-Type: application/json
+
+{ "productCode": "PEN-BLUE", "quantity": 0, "unitPrice": 2.00, "currency": "EUR" }
+
+### 5. Place the order: raises OrderPlaced, stores the integration event in the outbox
+POST {{baseUrl}}/orders/{{start.response.body.$.id}}/place
+Content-Type: application/json
+
+{ "street": "Main Street 1", "postalCode": "1234 AB", "city": "Springfield", "countryCode": "NL" }
+
+### 6. Shipping prepared a shipment (a moment after the outbox published)
+# @name shipments
+GET {{baseUrl}}/shipments?orderId={{start.response.body.$.id}}
+
+### 7. Dispatch it: Shipping publishes ShipmentDispatched, Ordering marks the order shipped
+POST {{baseUrl}}/shipments/{{shipments.response.body.$[0].id}}/dispatch
+Content-Type: application/json
+
+{ "trackingCode": "TRACK12345NL" }
+
+### 8. The order is now Shipped
+GET {{baseUrl}}/orders/{{start.response.body.$.id}}
+
+### 9. Too late to cancel -> 422 with code order.already-shipped
+POST {{baseUrl}}/orders/{{start.response.body.$.id}}/cancel
+Content-Type: application/json
+
+{ "reason": "Changed my mind" }

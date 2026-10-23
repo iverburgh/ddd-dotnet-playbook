@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Only the domain: no EF Core, no database, no web server. If a test needs more, the logic is in the wrong layer. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ordering\Ordering.Domain\Ordering.Domain.csproj" />
+  </ItemGroup>
+</Project>

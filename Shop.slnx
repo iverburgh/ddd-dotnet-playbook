@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj" />
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Contracts/BuildingBlocks.Contracts.csproj" />
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Domain/BuildingBlocks.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Infrastructure/BuildingBlocks.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Ordering/">
+    <Project Path="src/Ordering/Ordering.Application/Ordering.Application.csproj" />
+    <Project Path="src/Ordering/Ordering.Contracts/Ordering.Contracts.csproj" />
+    <Project Path="src/Ordering/Ordering.Domain/Ordering.Domain.csproj" />
+    <Project Path="src/Ordering/Ordering.Infrastructure/Ordering.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Shipping/">
+    <Project Path="src/Shipping/Shipping.Application/Shipping.Application.csproj" />
+    <Project Path="src/Shipping/Shipping.Contracts/Shipping.Contracts.csproj" />
+    <Project Path="src/Shipping/Shipping.Domain/Shipping.Domain.csproj" />
+    <Project Path="src/Shipping/Shipping.Infrastructure/Shipping.Infrastructure.csproj" />
+  </Folder>
+  <Project Path="src/Shop.Api/Shop.Api.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/Architecture.Tests/Architecture.Tests.csproj" />
+    <Project Path="tests/BuildingBlocks.Infrastructure.Tests/BuildingBlocks.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Ordering.Domain.Tests/Ordering.Domain.Tests.csproj" />
+    <Project Path="tests/Shipping.Domain.Tests/Shipping.Domain.Tests.csproj" />
+    <Project Path="tests/Shop.Api.Tests/Shop.Api.Tests.csproj" />
+  </Folder>
+</Solution>
