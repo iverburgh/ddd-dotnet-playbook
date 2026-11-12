@@ -54,9 +54,17 @@ Domain tests cover the rules. Other things still need testing — once, at the r
 
 | Concern | Test project | Uses |
 |---|---|---|
-| Events dispatched before commit, outbox atomicity, versioning, retries, inbox | [BuildingBlocks.Infrastructure.Tests](../tests/BuildingBlocks.Infrastructure.Tests) | real EF Core on in-memory SQLite, `FakeTimeProvider` |
-| Layer and context boundaries | [Architecture.Tests](../tests/Architecture.Tests) | reflection on compiled assemblies |
+| Events dispatched before commit, outbox atomicity, versioning, retries, fairness, inbox | [BuildingBlocks.Infrastructure.Tests](../tests/BuildingBlocks.Infrastructure.Tests) | real EF Core on in-memory SQLite, `FakeTimeProvider` |
+| Layer and context boundaries; contracts that round-trip through the serializer | [Architecture.Tests](../tests/Architecture.Tests) | reflection on compiled assemblies, the real serializer |
 | Mapping, wiring, HTTP, the flow across contexts | [Shop.Api.Tests](../tests/Shop.Api.Tests) | `WebApplicationFactory`, SQLite files |
+
+SQLite keeps these tests fast and free of external dependencies, but it is not your production
+database. Once you hand-write the outbox queries for SQL Server or PostgreSQL, test them against
+that engine too, see [pitfalls.md](pitfalls.md#believing-sqlite-tests-about-production-queries).
+
+Integration events are stored and read back later, possibly by newer code.
+[ContractTests.cs](../tests/Architecture.Tests/ContractTests.cs) serializes a sample of each
+contract, reads it back and compares the JSON; a guard test fails when a contract has no sample.
 
 Note what is missing: unit tests of application handlers with mocked repositories. A handler is
 three lines of orchestration; mocking its collaborators tests the mocks. The API tests cover the

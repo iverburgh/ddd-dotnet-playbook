@@ -106,7 +106,10 @@ public sealed class FakeMessageBus : IMessageBus
 
     public Func<MessageEnvelope, bool> FailWhen { get; set; } = _ => false;
 
-    public Task PublishAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
+    /// <summary>Runs after a message was accepted, before the outbox records it.</summary>
+    public Func<MessageEnvelope, Task> OnPublished { get; set; } = _ => Task.CompletedTask;
+
+    public async Task PublishAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
         if (FailWhen(envelope))
         {
@@ -114,6 +117,6 @@ public sealed class FakeMessageBus : IMessageBus
         }
 
         Published.Add(envelope);
-        return Task.CompletedTask;
+        await OnPublished(envelope);
     }
 }

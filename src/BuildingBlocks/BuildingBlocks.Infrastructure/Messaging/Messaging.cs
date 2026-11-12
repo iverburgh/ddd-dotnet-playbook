@@ -27,7 +27,7 @@ public sealed class IntegrationEventOptions
 /// <summary>Maps stable integration event names to contract types and back.</summary>
 public sealed class IntegrationEventTypes
 {
-    internal static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
     private readonly Dictionary<string, Type> _byName = new(StringComparer.Ordinal);
     private readonly Dictionary<Type, string> _byType = [];
@@ -59,9 +59,46 @@ public sealed class IntegrationEventTypes
 
     public Type GetType(string name) => _byName.TryGetValue(name, out var type)
         ? type
-        : throw new InvalidOperationException($"No integration event is registered under the name '{name}'.");
+        : throw new UnresolvableMessageException($"No integration event is registered under the name '{name}'.");
 
-    public object Deserialize(MessageEnvelope envelope) =>
-        JsonSerializer.Deserialize(envelope.Payload, GetType(envelope.Type), SerializerOptions)
-        ?? throw new InvalidOperationException($"Message {envelope.MessageId} has an empty payload.");
+    public bool IsRegistered(string name) => _byName.ContainsKey(name);
+
+    public string Serialize(IIntegrationEvent integrationEvent)
+    {
+        ArgumentNullException.ThrowIfNull(integrationEvent);
+        return JsonSerializer.Serialize(integrationEvent, integrationEvent.GetType(), SerializerOptions);
+    }
+
+    /// <summary>Reads a message back into its contract; throws <see cref="UnresolvableMessageException"/> when this version of the code cannot.</summary>
+    public object Deserialize(MessageEnvelope envelope)
+    {
+        var type = GetType(envelope.Type);
+        try
+        {
+            return JsonSerializer.Deserialize(envelope.Payload, type, SerializerOptions)
+                ?? throw new UnresolvableMessageException($"Message {envelope.MessageId} has an empty payload.");
+        }
+        catch (Exception exception) when (exception is JsonException or NotSupportedException)
+        {
+            throw new UnresolvableMessageException($"Message {envelope.MessageId} cannot be read as '{envelope.Type}': {exception.Message}", exception);
+        }
+    }
+}
+
+/// <summary>
+/// A message that this version of the code cannot read: its contract was renamed or removed, or its
+/// payload no longer fits the contract. Unlike a broker outage, waiting does not fix it; a code or a
+/// data change does.
+/// </summary>
+public sealed class UnresolvableMessageException : InvalidOperationException
+{
+    public UnresolvableMessageException(string message)
+        : base(message)
+    {
+    }
+
+    public UnresolvableMessageException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
 }

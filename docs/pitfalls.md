@@ -73,7 +73,36 @@ see [outbox-pattern.md](outbox-pattern.md#exactly-one-publisher-per-outbox).
 ### Forgetting to monitor
 
 An outbox hides broker outages: the API stays green while messages pile up. Alert on the age of the
-oldest unpublished message and on messages with many failed attempts.
+oldest unpublished message and on unresolvable messages, and feed the age alert from the database,
+not from the publisher. See [operating the outbox](outbox-pattern.md#operating-the-outbox).
+
+### Failures that starve the outbox
+
+Fetching the oldest `N` unpublished messages and skipping the backed-off ones in memory works until
+`N` messages are backing off at the same time. From then on every run reads the same failed batch
+and the outbox publishes nothing at all. Filter backed-off messages, and the messages queued behind
+them in their group, in the query itself. See
+[fairness](outbox-pattern.md#fairness-failures-must-not-starve-the-rest).
+
+### Treating every failure as transient
+
+A message whose type or payload this code cannot read fails on every retry. Logged as a warning
+among broker hiccups it goes unnoticed for days, while its whole group waits. Give it its own
+exception, its own metric reason and an alert. See
+[transient and permanent failures](outbox-pattern.md#transient-and-permanent-failures).
+
+### Carrying on after "published, but not recorded"
+
+When marking a message as published fails, the next save will most likely fail too. Continuing the
+run publishes every following message a second time; marking the message as failed blocks its group
+for nothing. Stop the run. See
+[published, but not recorded](outbox-pattern.md#published-but-not-recorded).
+
+### Removing a contract or handler in one step
+
+Messages already in the outbox, the broker or last week's backup still carry the old type. Stop
+producing first; remove the code only after the outbox has drained and the restore window has
+passed. See [removing an event or a handler](outbox-pattern.md#removing-an-event-or-a-handler).
 
 ## EF Core
 
@@ -106,6 +135,14 @@ SQLite, which sort chronologically only when every value has the same offset. Al
 
 The sample creates its schema on start because it is a demo. Use migrations or a database project
 for anything real; `EnsureCreated` cannot evolve a schema.
+
+### Believing SQLite tests about production queries
+
+In-memory SQLite makes the infrastructure tests fast and keeps this sample free of external
+dependencies. It proves the logic, not your production SQL: the translation, the locking, the
+indexes and the query plans all differ. Once the outbox fetch is a hand-written query for your
+production database, test that query against the same engine: a container (Testcontainers) or a
+local instance in CI. Run the shared test cases against both if you want to keep the fast loop.
 
 ## Process
 

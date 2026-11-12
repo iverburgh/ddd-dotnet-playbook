@@ -85,11 +85,31 @@ The integration event is published after the commit by the outbox. Shipping's
 `PrepareShipmentWhenOrderPlaced` implements `IIntegrationEventHandler<OrderPlacedIntegrationEvent>`;
 it runs in its own scope and its own transaction, deduplicated by the inbox.
 
+## In-process or through the outbox?
+
+Handle a domain event in-process only when both hold:
+
+- its side effects stay **in the same context and the same DbContext**, so they can share the
+  transaction; and
+- they **must** succeed or fail together with the change that raised the event.
+
+Also fine in-process: side effects you can afford to lose, such as a log line. Everything else
+(another context, a broker, an e-mail, a file, an external API) goes through the outbox. Doing
+those directly from a handler creates the two classic failures of a dual write:
+
+- a **phantom event**: the side effect happened, then the save failed, so it describes something
+  that never was;
+- a **zombie record**: the save succeeded, then the side effect failed or the process stopped, so
+  nobody else ever hears about it.
+
 ## What to put in an event
 
 - **What happened, and when.** `OccurredAt` comes from the time passed into the method.
 - **Enough for the expected handlers**, so they do not have to query back. `OrderPlaced` carries the
   lines and the address.
+- **Every identifier consumers need.** If a consumer has to look up an id through a repository to
+  find out what the event is about, the event is incomplete, and the lookup may see a newer state
+  than the one the event describes.
 - **Ids, not object references** to other aggregates.
 - **Nothing that is not true yet.** Raise after the state change has been decided, never before a
   check that could still fail.

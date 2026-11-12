@@ -17,7 +17,7 @@ your codebase and own.
 | Aggregates and aggregate roots | [docs/aggregates.md](docs/aggregates.md) | [AggregateRoot.cs](src/BuildingBlocks/BuildingBlocks.Domain/AggregateRoot.cs) |
 | Invariants | [docs/invariants.md](docs/invariants.md) | [Invariant.cs](src/BuildingBlocks/BuildingBlocks.Domain/Invariant.cs), [Result.cs](src/BuildingBlocks/BuildingBlocks.Domain/Result.cs) |
 | Domain events (`OrderPlaced`) | [docs/domain-events.md](docs/domain-events.md) | [DbContextBase.cs](src/BuildingBlocks/BuildingBlocks.Infrastructure/Persistence/DbContextBase.cs) |
-| Outbox (and inbox) | [docs/outbox-pattern.md](docs/outbox-pattern.md) | [Outbox/](src/BuildingBlocks/BuildingBlocks.Infrastructure/Outbox) |
+| Outbox (and inbox), fairness, failure handling, metrics | [docs/outbox-pattern.md](docs/outbox-pattern.md) | [Outbox/](src/BuildingBlocks/BuildingBlocks.Infrastructure/Outbox), [OutboxMetrics.cs](src/BuildingBlocks/BuildingBlocks.Infrastructure/Outbox/OutboxMetrics.cs) |
 | Repository pattern | [docs/repositories.md](docs/repositories.md) | [OrderRepository.cs](src/Ordering/Ordering.Infrastructure/OrderRepository.cs) |
 | Layer boundaries | [docs/layers.md](docs/layers.md) | [BoundaryTests.cs](tests/Architecture.Tests/BoundaryTests.cs) |
 | Domain tests without a database or web server | [docs/domain-tests.md](docs/domain-tests.md) | [OrderTests.cs](tests/Ordering.Domain.Tests/OrderTests.cs) |
@@ -75,9 +75,22 @@ tests/
   Ordering.Domain.Tests/   Pure domain tests: no database, no web server
   Shipping.Domain.Tests/
   BuildingBlocks.Infrastructure.Tests/  Outbox, inbox, versioning against real SQLite
-  Architecture.Tests/      Layer and context boundaries
+  Architecture.Tests/      Layer and context boundaries, contract round-trips
   Shop.Api.Tests/          End to end through HTTP
 ```
+
+## Related playbooks
+
+From the same monorepo, each on its own:
+
+- [Renovate on Azure DevOps](https://github.com/iverburgh/renovate-azure-devops-playbook) —
+  automated dependency updates for a .NET solution like this one.
+- [Copilot on Azure DevOps](https://github.com/iverburgh/copilot-azure-devops-playbook) —
+  instructions, skills and agents that keep generated code inside these boundaries.
+- [Path filters on Azure DevOps](https://github.com/iverburgh/azure-devops-path-filter-playbook) —
+  build only the bounded contexts a change actually touches.
+- [Azure App Configuration](https://github.com/iverburgh/azure-app-configuration-playbook) —
+  configuration as code, deployed and rolled back together with the application.
 
 ## License
 

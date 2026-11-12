@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<OutboxSignal>();
         services.TryAddSingleton<IntegrationEventTypes>();
+        services.TryAddSingleton<OutboxMetrics>();
         services.TryAddSingleton<IMessageBus, InMemoryMessageBus>();
         services.TryAddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.TryAddScoped<OutboxCollector>();

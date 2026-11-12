@@ -1,4 +1,3 @@
-using System.Text.Json;
 using BuildingBlocks.Application;
 using BuildingBlocks.Contracts;
 using BuildingBlocks.Infrastructure.Messaging;
@@ -17,10 +16,9 @@ public sealed class OutboxCollector(IntegrationEventTypes types, TimeProvider ti
     public void Enqueue(IIntegrationEvent integrationEvent, string? messageGroup = null)
     {
         ArgumentNullException.ThrowIfNull(integrationEvent);
-        var type = integrationEvent.GetType();
         _pending.Add(OutboxMessage.Create(
-            types.GetName(type),
-            JsonSerializer.Serialize(integrationEvent, type, IntegrationEventTypes.SerializerOptions),
+            types.GetName(integrationEvent.GetType()),
+            types.Serialize(integrationEvent),
             messageGroup,
             integrationEvent.OccurredAt,
             timeProvider.GetUtcNow()));

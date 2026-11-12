@@ -14,6 +14,7 @@ namespace BuildingBlocks.Infrastructure.Outbox;
 public sealed class OutboxPublisherService<TContext>(
     IServiceScopeFactory scopes,
     OutboxSignal signal,
+    OutboxMetrics metrics,
     IOptions<OutboxOptions> options,
     ILogger<OutboxPublisherService<TContext>> logger) : BackgroundService
     where TContext : DbContextBase
@@ -35,6 +36,7 @@ public sealed class OutboxPublisherService<TContext>(
                 while (run.Read == options.Value.BatchSize && run.Published > 0 && !stoppingToken.IsCancellationRequested);
 
                 await processor.DeletePublishedAsync(stoppingToken);
+                metrics.RecordPending(typeof(TContext).Name, await processor.GetPendingStatsAsync(stoppingToken));
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

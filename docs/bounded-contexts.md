@@ -53,6 +53,22 @@ Ordering has cancelled — it must not throw (a retry will not change the past).
 conflict for a person or a follow-up process. See `CancelShipmentWhenOrderCancelled` in
 [ShippingUseCases.cs](../src/Shipping/Shipping.Application/ShippingUseCases.cs).
 
+### When a context needs an answer now
+
+Sometimes a use case needs data owned by another context *during* the request, and an eventually
+consistent local copy is not good enough. Within one process, a reasonable middle ground is an
+**in-process query interface**:
+
+- the consuming context defines what it needs (or the owning context publishes it in its
+  `Contracts` project), as a narrow interface with primitive results;
+- the owning context implements it in its application layer, on top of its own model;
+- the consumer never touches the other context's DbContext or tables.
+
+The price is coupling at run time: the contexts must be deployed together, and one context's
+slowness or outage becomes the other's. Prefer events and a local copy; use a query interface for
+the few cases that truly need fresh data, and keep each one narrow so it can become an HTTP call if
+the contexts are ever split.
+
 ## Finding the boundaries in your own domain
 
 - **Follow the language.** Where the same word starts to mean something else, there is a boundary.

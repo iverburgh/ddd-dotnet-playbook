@@ -109,12 +109,16 @@ When another context or system must learn about a change:
 
 - [ ] Define the contract in `Billing.Contracts`: a record with primitives,
       `[IntegrationEventName("billing.invoice-issued.v1")]`.
+- [ ] Add a sample of the contract to the round-trip test (template:
+      [ContractTests.cs](../tests/Architecture.Tests/ContractTests.cs)).
 - [ ] Write a domain event handler that maps the domain event to the contract and calls
       `outbox.Enqueue(contract, messageGroup: $"invoice-{id}")`.
 - [ ] Implement `IMessageBus` over your broker, see
       [outbox-pattern.md](outbox-pattern.md#replacing-the-in-memory-bus).
 - [ ] With more than one instance: add a distributed lock to the publisher.
-- [ ] Add an alert on the oldest unpublished outbox message.
+- [ ] Export the `BuildingBlocks.Outbox` meter and alert on the oldest unpublished message and on
+      unresolvable messages, see [operating the outbox](outbox-pattern.md#operating-the-outbox).
+- [ ] Test the outbox queries against your production database engine, not only SQLite.
 
 ## 7. Consume integration events
 
@@ -140,8 +144,9 @@ builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection("Outb
 - [ ] Every rule from the glossary has a domain test with its name in the business language.
 - [ ] No public setters on entities; no `IQueryable` from repositories.
 - [ ] One aggregate changed per transaction.
-- [ ] Integration events are contracts with primitives, versioned by name.
+- [ ] Integration events are contracts with primitives, versioned by name, with a round-trip test.
 - [ ] Consumers are idempotent; conflicts are logged, not thrown.
+- [ ] Removing a contract or handler happens in two steps (stop producing, remove later).
 - [ ] Architecture tests cover the new assemblies.
 
 Then read the [pitfalls](pitfalls.md).

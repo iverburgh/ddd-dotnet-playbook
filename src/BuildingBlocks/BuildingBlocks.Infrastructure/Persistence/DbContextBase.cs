@@ -70,6 +70,15 @@ public abstract class DbContextBase : DbContext
             outbox.HasKey(m => m.Id);
             outbox.Property(m => m.Id).ValueGeneratedOnAdd();
             outbox.HasIndex(m => m.MessageId).IsUnique();
+
+            // Indexes follow the queries: the fetch reads pending rows in Id order and probes each group
+            // for a blocked head; cleanup scans by PublishedAt. Check them against a production-sized table.
+            outbox.HasIndex(m => m.Id)
+                .HasFilter("\"PublishedAt\" IS NULL")
+                .HasDatabaseName($"IX_{TablePrefix}OutboxMessages_Pending");
+            outbox.HasIndex(m => new { m.MessageGroup, m.Id })
+                .HasFilter("\"PublishedAt\" IS NULL")
+                .HasDatabaseName($"IX_{TablePrefix}OutboxMessages_PendingGroup");
             outbox.HasIndex(m => m.PublishedAt);
             outbox.Property(m => m.Type).HasMaxLength(200);
             outbox.Property(m => m.MessageGroup).HasMaxLength(200);

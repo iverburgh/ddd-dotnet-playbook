@@ -48,8 +48,9 @@ The tests are the most compact description of the behaviour:
 
 - [OrderTests.cs](../tests/Ordering.Domain.Tests/OrderTests.cs): every business rule of an order, in milliseconds.
 - [SaveChangesTests.cs](../tests/BuildingBlocks.Infrastructure.Tests/SaveChangesTests.cs): events dispatched before commit, outbox atomicity, versioning.
-- [OutboxAndInboxTests.cs](../tests/BuildingBlocks.Infrastructure.Tests/OutboxAndInboxTests.cs): ordering, backoff, group blocking, deduplication.
+- [OutboxAndInboxTests.cs](../tests/BuildingBlocks.Infrastructure.Tests/OutboxAndInboxTests.cs): ordering, backoff, group blocking, fairness, unresolvable and not-recorded messages, backlog metrics, deduplication.
 - [BoundaryTests.cs](../tests/Architecture.Tests/BoundaryTests.cs): the layer and context rules.
+- [ContractTests.cs](../tests/Architecture.Tests/ContractTests.cs): every integration event survives the trip through the outbox serializer.
 - [OrderFlowTests.cs](../tests/Shop.Api.Tests/OrderFlowTests.cs): the flow above, automated.
 
 Next: [apply it to your own solution](applying-to-your-solution.md).
