@@ -91,6 +91,8 @@ From the same monorepo, each on its own:
   build only the bounded contexts a change actually touches.
 - [Azure App Configuration](https://github.com/iverburgh/azure-app-configuration-playbook) —
   configuration as code, deployed and rolled back together with the application.
+- [Entra ID app registrations as code](https://github.com/iverburgh/entra-app-registrations-as-code-playbook) —
+  app registrations, roles and access as code, and an API that turns those roles into policies.
 
 ## License
 
