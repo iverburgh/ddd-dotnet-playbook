@@ -15,9 +15,9 @@ public sealed record ShipmentCancelled(ShipmentId ShipmentId, OrderReference Ord
 
 public static class ShipmentErrors
 {
-    public static readonly Error AlreadyDispatched = new("shipment.already-dispatched", "The shipment has already left the warehouse.");
+    public static readonly BusinessRuleError AlreadyDispatched = new("shipment.already-dispatched", "The shipment has already left the warehouse.");
 
-    public static readonly Error AlreadyCancelled = new("shipment.already-cancelled", "The shipment is cancelled.");
+    public static readonly BusinessRuleError AlreadyCancelled = new("shipment.already-cancelled", "The shipment is cancelled.");
 }
 
 /// <summary>

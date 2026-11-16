@@ -1,26 +1,30 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace BuildingBlocks.Domain;
 
-/// <summary>A business rule that said no. <see cref="Code"/> is stable and machine-readable; <see cref="Message"/> is for people.</summary>
-public sealed record Error(string Code, string Message);
-
-/// <summary>The outcome of a domain operation that can be refused by a business rule.</summary>
+/// <summary>
+/// The outcome of an operation that can fail in an expected way. A failure carries exactly one typed
+/// <see cref="Domain.Error"/>; unexpected failures are exceptions, not results.
+/// </summary>
 public class Result
 {
     protected Result(Error? error) => Error = error;
 
     public Error? Error { get; }
 
+    [MemberNotNullWhen(false, nameof(Error))]
     public bool IsSuccess => Error is null;
 
-    public bool IsFailure => !IsSuccess;
+    [MemberNotNullWhen(true, nameof(Error))]
+    public bool IsFailure => Error is not null;
 
     public static Result Success() => new(null);
 
-    public static Result Failure(Error error) => new(error ?? throw new ArgumentNullException(nameof(error)));
+    public static Result Failure(Error error) => new(Guard.NotNull(error));
 
     public static Result<T> Success<T>(T value) => new(value, null);
 
-    public static Result<T> Failure<T>(Error error) => new(default, error ?? throw new ArgumentNullException(nameof(error)));
+    public static Result<T> Failure<T>(Error error) => new(default, Guard.NotNull(error));
 }
 
 public sealed class Result<T> : Result
@@ -30,5 +34,8 @@ public sealed class Result<T> : Result
     internal Result(T? value, Error? error)
         : base(error) => _value = value;
 
-    public T Value => IsSuccess ? _value! : throw new InvalidOperationException($"A failed result has no value: {Error!.Code}.");
+    /// <summary>The value of a successful result. Reading it from a failure is a bug and throws.</summary>
+    public T Value => IsFailure
+        ? throw new InvalidOperationException($"A failed result has no value: {Error.Code}.")
+        : _value!;
 }

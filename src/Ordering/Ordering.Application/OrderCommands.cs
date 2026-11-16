@@ -9,7 +9,7 @@ namespace Ordering.Application;
 /// </summary>
 public static class OrderingErrors
 {
-    public static Error OrderNotFound(Guid orderId) => new("order.not-found", $"Order {orderId} does not exist.");
+    public static NotFoundError OrderNotFound(Guid orderId) => new("order.not-found", $"Order {orderId} does not exist.");
 }
 
 public sealed record StartOrder(Guid CustomerId, string Currency);

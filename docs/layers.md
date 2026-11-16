@@ -60,6 +60,9 @@ later.
   mediator: the call is explicit and navigable. Add one if you want pipeline behaviours.
 - **Commands are records with primitives.** Building value objects happens in the handler, so an
   invalid value throws `InvariantViolationException`, which the API maps to `400`.
+- **Errors are typed in the domain, mapped at the edge.** The domain and application layers return
+  errors by kind (`NotFoundError`, `BusinessRuleError`); only the host knows HTTP. See
+  [error-handling.md](error-handling.md).
 - **Read models are built in infrastructure** but their shape (`OrderDetails`) is declared in the
   application layer, so the API depends on the shape and not on the database.
 - **`BuildingBlocks` follows the same layering**: `BuildingBlocks.Domain` has no dependencies;

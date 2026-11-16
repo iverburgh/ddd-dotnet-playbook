@@ -17,9 +17,9 @@ like. They are small on purpose; you own them now.
 
 | Project | What you get | Depends on |
 |---|---|---|
-| `BuildingBlocks.Domain` | `Entity<TId>`, `AggregateRoot<TId>`, `IDomainEvent`, `Invariant`, `Result`, `Error` | nothing |
+| `BuildingBlocks.Domain` | `Entity<TId>`, `AggregateRoot<TId>`, `IDomainEvent`, `Invariant`, `Guard`, `Result`, the typed `Error` kinds | nothing |
 | `BuildingBlocks.Contracts` | `IIntegrationEvent`, `[IntegrationEventName]` | nothing |
-| `BuildingBlocks.Application` | `IDomainEventHandler<T>`, `IIntegrationEventHandler<T>`, `IOutbox` | Domain, Contracts |
+| `BuildingBlocks.Application` | `IDomainEventHandler<T>`, `IIntegrationEventHandler<T>`, `IOutbox`, `SettlementDecision` | Domain, Contracts |
 | `BuildingBlocks.Infrastructure` | `DbContextBase`, outbox, inbox, dispatcher, DI extensions | EF Core Relational |
 
 If you use SQL Server or PostgreSQL, nothing changes: `DbContextBase` is provider-neutral.
@@ -49,7 +49,9 @@ Turn the rules from step 0 into domain tests, then make them pass. Use
 - [ ] A named factory method (`Invoice.Issue(...)`) and a private parameterless constructor for EF.
 - [ ] Value objects for every concept with rules (`Money`, `InvoiceNumber`), validated with
       `Invariant.Require`.
-- [ ] One method per business act, returning `Result`; error codes in one `XxxErrors` class.
+- [ ] One method per business act, returning `Result`; errors in one `XxxErrors` class, each with
+      a stable code and a concrete kind (`BusinessRuleError`, `NotFoundError`), listed in the
+      error catalogue test (template: [ErrorCatalogueTests.cs](../tests/Architecture.Tests/ErrorCatalogueTests.cs)).
 - [ ] `now` as a parameter, never `DateTime.Now`.
 - [ ] `Raise(new SomethingHappened(...))` after each successful state change that others care about.
 - [ ] A repository interface in the domain: `GetAsync`, `Add`, `SaveChangesAsync`.
@@ -97,9 +99,10 @@ The `Version` column on existing tables needs a default of `0`.
 
 One handler per use case in the application layer (template:
 [OrderCommands.cs](../src/Ordering/Ordering.Application/OrderCommands.cs)): load, call one method,
-save if it succeeded, return the `Result`. Map results to HTTP once, by kind (template:
-[HttpResults.cs](../src/Shop.Api/HttpResults.cs)): invariant violation `400`, business rule `422`,
-`*.not-found` `404`.
+save if it succeeded, return the `Result`. Map results to HTTP once, by error kind, as RFC 9457
+problem details, and register the exception handler for everything that is thrown (templates:
+[HttpResults.cs](../src/Shop.Api/HttpResults.cs), [ExceptionHandler.cs](../src/Shop.Api/ExceptionHandler.cs)).
+See [error-handling.md](error-handling.md) for the mapping table and the settings in `Program.cs`.
 
 The old code path can stay alongside. Move callers over one at a time.
 
@@ -127,6 +130,9 @@ When another context or system must learn about a change:
 - [ ] Register it with `AddIntegrationEventHandler<TEvent, THandler, TDbContext>()` so the inbox
       deduplicates it.
 - [ ] Decide what happens when the fact conflicts with your state. Log and alert; do not throw.
+- [ ] With a real broker: settle each message by the handler's result with `SettlementDecision`
+      (retryable errors retried, the rest dead-lettered with their code), see
+      [error-handling.md](error-handling.md#from-error-to-message-settlement).
 
 ## 8. Wire the module
 
@@ -146,6 +152,7 @@ builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection("Outb
 - [ ] One aggregate changed per transaction.
 - [ ] Integration events are contracts with primitives, versioned by name, with a round-trip test.
 - [ ] Consumers are idempotent; conflicts are logged, not thrown.
+- [ ] Error codes are stable and catalogued; HTTP mapping is by kind and leaks nothing on a `500`.
 - [ ] Removing a contract or handler happens in two steps (stop producing, remove later).
 - [ ] Architecture tests cover the new assemblies.
 

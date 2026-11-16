@@ -16,6 +16,7 @@ your codebase and own.
 | Entities and value objects | [docs/entities-and-value-objects.md](docs/entities-and-value-objects.md) | [OrderLine.cs](src/Ordering/Ordering.Domain/Orders/OrderLine.cs), [ValueObjects.cs](src/Ordering/Ordering.Domain/Orders/ValueObjects.cs) |
 | Aggregates and aggregate roots | [docs/aggregates.md](docs/aggregates.md) | [AggregateRoot.cs](src/BuildingBlocks/BuildingBlocks.Domain/AggregateRoot.cs) |
 | Invariants | [docs/invariants.md](docs/invariants.md) | [Invariant.cs](src/BuildingBlocks/BuildingBlocks.Domain/Invariant.cs), [Result.cs](src/BuildingBlocks/BuildingBlocks.Domain/Result.cs) |
+| Error handling with result types: typed errors with stable codes, HTTP status and problem details, retry or dead-letter, nullability | [docs/error-handling.md](docs/error-handling.md) | [Errors.cs](src/BuildingBlocks/BuildingBlocks.Domain/Errors.cs), [HttpResults.cs](src/Shop.Api/HttpResults.cs), [ExceptionHandler.cs](src/Shop.Api/ExceptionHandler.cs), [MessageSettlement.cs](src/BuildingBlocks/BuildingBlocks.Application/MessageSettlement.cs) |
 | Domain events (`OrderPlaced`) | [docs/domain-events.md](docs/domain-events.md) | [DbContextBase.cs](src/BuildingBlocks/BuildingBlocks.Infrastructure/Persistence/DbContextBase.cs) |
 | Outbox (and inbox), fairness, failure handling, metrics | [docs/outbox-pattern.md](docs/outbox-pattern.md) | [Outbox/](src/BuildingBlocks/BuildingBlocks.Infrastructure/Outbox), [OutboxMetrics.cs](src/BuildingBlocks/BuildingBlocks.Infrastructure/Outbox/OutboxMetrics.cs) |
 | Repository pattern | [docs/repositories.md](docs/repositories.md) | [OrderRepository.cs](src/Ordering/Ordering.Infrastructure/OrderRepository.cs) |
@@ -63,20 +64,22 @@ Then run the requests in [Shop.Api.http](src/Shop.Api/Shop.Api.http) top to bott
 
 ```text
 src/
-  BuildingBlocks/          Reusable base: aggregate root, outbox, inbox, domain event dispatch
+  BuildingBlocks/          Reusable base: aggregate root, result and typed errors, outbox, inbox, domain event dispatch
   Ordering/                One bounded context
     Ordering.Domain/         Aggregates, value objects, domain events, repository interface
     Ordering.Application/    Use cases, event handlers, read models
     Ordering.Infrastructure/ EF Core mapping, repository, module registration
     Ordering.Contracts/      The integration events other contexts may depend on
   Shipping/                Another bounded context, same shape
-  Shop.Api/                Host: composes the contexts and exposes HTTP endpoints
+  Shop.Api/                Host: composes the contexts, exposes HTTP endpoints, maps errors to problem details
 tests/
   Ordering.Domain.Tests/   Pure domain tests: no database, no web server
   Shipping.Domain.Tests/
+  Ordering.Application.Tests/  Handlers return typed failures and save nothing
+  BuildingBlocks.Application.Tests/  Error taxonomy, codes, guards, retry or dead-letter classification
   BuildingBlocks.Infrastructure.Tests/  Outbox, inbox, versioning against real SQLite
-  Architecture.Tests/      Layer and context boundaries, contract round-trips
-  Shop.Api.Tests/          End to end through HTTP
+  Architecture.Tests/      Layer and context boundaries, contract round-trips, the error code catalogue
+  Shop.Api.Tests/          End to end through HTTP, error to status and problem details
 ```
 
 ## Related playbooks
@@ -107,6 +110,8 @@ From the same monorepo, each on its own:
   complete, abandon or dead-letter: what happens to an integration event when its handler fails.
 - [Azure SQL disaster recovery](https://github.com/iverburgh/azure-sql-disaster-recovery-playbook) —
   a guided point-in-time restore, and reconciling the integration events other contexts already saw.
+- [Azure DevOps environments as code](https://github.com/iverburgh/azure-devops-environments-as-code-playbook) —
+  environments, approvals and checks as code, so every bounded context deploys through the same gates.
 
 ## License
 

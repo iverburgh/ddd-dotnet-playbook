@@ -21,7 +21,9 @@
   <Project Path="src/Shop.Api/Shop.Api.csproj" />
   <Folder Name="/tests/">
     <Project Path="tests/Architecture.Tests/Architecture.Tests.csproj" />
+    <Project Path="tests/BuildingBlocks.Application.Tests/BuildingBlocks.Application.Tests.csproj" />
     <Project Path="tests/BuildingBlocks.Infrastructure.Tests/BuildingBlocks.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Ordering.Application.Tests/Ordering.Application.Tests.csproj" />
     <Project Path="tests/Ordering.Domain.Tests/Ordering.Domain.Tests.csproj" />
     <Project Path="tests/Shipping.Domain.Tests/Shipping.Domain.Tests.csproj" />
     <Project Path="tests/Shop.Api.Tests/Shop.Api.Tests.csproj" />

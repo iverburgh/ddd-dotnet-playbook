@@ -58,7 +58,7 @@ public sealed partial class MarkOrderShippedWhenShipmentDispatched(
         {
             // A fact from another context cannot be refused. Throwing would only retry forever, so
             // record the conflict for a person to resolve (refund, recall the parcel, ...).
-            LogShipmentConflict(integrationEvent.OrderId, result.Error!.Code);
+            LogShipmentConflict(integrationEvent.OrderId, result.Error.Code);
             return;
         }
 

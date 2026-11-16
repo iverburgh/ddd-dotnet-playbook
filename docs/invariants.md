@@ -14,7 +14,7 @@ Not every refusal is the same. The sample distinguishes two, and handles them di
 | Could it ever succeed? | never, in any state | yes, if the aggregate were in another state |
 | Detected by | constructor of a value object | method of an aggregate |
 | Mechanism | `Invariant.Require` throws `InvariantViolationException` | returns `Result.Failure(error)` |
-| HTTP | `400 Bad Request` | `422 Unprocessable Entity`, with the rule's code |
+| HTTP | `400 Bad Request`, code `invalid-input` | `422 Unprocessable Content`, with the rule's code |
 | Expected in normal use? | no, a client bug or bad input | yes, users try things |
 
 ### Invalid input: throw
@@ -52,8 +52,11 @@ public Result Cancel(string reason, DateTimeOffset now)
 ```
 
 The return type forces the caller to deal with the refusal. Each `Error` has a stable code
-(`order.already-shipped`) that clients and support can rely on, and a message for people. All codes
-of an aggregate live in one place (`OrderErrors`), which doubles as documentation of its rules.
+(`order.already-shipped`) that clients and support can rely on, a message for people, and a kind
+(`BusinessRuleError`, `NotFoundError`, ...) that decides the HTTP status. All codes of an aggregate
+live in one place (`OrderErrors`), which doubles as documentation of its rules. The kinds, the
+mapping to HTTP and to message settlement, and when to throw instead are in
+[error-handling.md](error-handling.md).
 
 ## Where invariants live
 

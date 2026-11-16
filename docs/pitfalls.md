@@ -19,7 +19,21 @@ should be business acts (`Place`, `Cancel`) that enforce rules, not setters with
 
 Throwing for "the order is already shipped" makes a normal outcome look like a crash, hides the
 possible outcomes from the method signature, and tempts callers into `catch (Exception)`. Throw for
-input that can never be valid; return a `Result` for rules. See [invariants.md](invariants.md).
+input that can never be valid; return a `Result` for rules. See [invariants.md](invariants.md) and
+[error-handling.md](error-handling.md#throw-or-return).
+
+### Mapping errors by their code
+
+`code.EndsWith(".not-found") ? 404 : 422` works until the first code that does not follow the
+convention, and every bounded context ends up with its own variant. Give each error a kind
+(`NotFoundError`, `BusinessRuleError`, `TransientError`) and map kinds to HTTP once, in the host,
+with no silent default. See [error-handling.md](error-handling.md#from-error-to-http).
+
+### Leaking exception details
+
+A `500` whose body contains the exception message or stack trace tells an attacker more than it
+tells the user. Answer server errors with a generic `detail` and a trace id; the exception goes to
+the log under that trace id. See [error-handling.md](error-handling.md#exceptions-at-the-boundary).
 
 ### Leaking the domain into contracts
 
@@ -89,7 +103,10 @@ them in their group, in the query itself. See
 A message whose type or payload this code cannot read fails on every retry. Logged as a warning
 among broker hiccups it goes unnoticed for days, while its whole group waits. Give it its own
 exception, its own metric reason and an alert. See
-[transient and permanent failures](outbox-pattern.md#transient-and-permanent-failures).
+[transient and permanent failures](outbox-pattern.md#transient-and-permanent-failures). The same
+holds for consumers: only a failure marked `IRetryableError` is worth another delivery, everything
+else is dead-lettered with its code. See
+[from error to message settlement](error-handling.md#from-error-to-message-settlement).
 
 ### Carrying on after "published, but not recorded"
 

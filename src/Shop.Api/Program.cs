@@ -12,7 +12,22 @@ builder.Services.AddShippingModule(db => db.UseSqlite(builder.Configuration.GetC
 builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection("Outbox"));
 
 builder.Services.AddProblemDetails();
-builder.Services.AddExceptionHandler<InvariantViolationExceptionHandler>();
+builder.Services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+
+// The handler logs what it handles; without this the middleware would log the same exception a second time.
+builder.Services.Configure<ExceptionHandlerOptions>(options => options.SuppressDiagnosticsCallback = _ => true);
+
+// A binding failure (malformed JSON, missing or null field) throws in every environment, so the exception handler
+// answers it with the same problem details instead of an empty 400 outside Development.
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
+
+// Nullability at the boundary: a request that leaves out a constructor parameter or sends null for a
+// non-nullable property is rejected while binding, before it can reach a handler as a half-built command.
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.RespectNullableAnnotations = true;
+    options.SerializerOptions.RespectRequiredConstructorParameters = true;
+});
 
 var app = builder.Build();
 

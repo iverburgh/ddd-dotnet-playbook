@@ -20,11 +20,20 @@ Content-Type: application/json
 
 { "productCode": "PEN-BLUE", "quantity": 1, "unitPrice": 2.00, "currency": "USD" }
 
-### 4. Input that can never be valid: quantity 0 -> 400
+### 4. Input that can never be valid: quantity 0 -> 400 with code invalid-input
 POST {{baseUrl}}/orders/{{start.response.body.$.id}}/lines
 Content-Type: application/json
 
 { "productCode": "PEN-BLUE", "quantity": 0, "unitPrice": 2.00, "currency": "EUR" }
+
+### 4a. A body that cannot be bound: currency missing -> 400 with code malformed-request
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{ "customerId": "{{$guid}}" }
+
+### 4b. The subject does not exist: no such line -> 404 with code order.line-not-found
+DELETE {{baseUrl}}/orders/{{start.response.body.$.id}}/lines/NOT-ON-ORDER
 
 ### 5. Place the order: raises OrderPlaced, stores the integration event in the outbox
 POST {{baseUrl}}/orders/{{start.response.body.$.id}}/place

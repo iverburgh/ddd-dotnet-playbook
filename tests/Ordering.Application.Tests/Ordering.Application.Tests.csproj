@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Handlers against an in-memory repository: no EF Core, no web server. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ordering\Ordering.Application\Ordering.Application.csproj" />
+  </ItemGroup>
+</Project>

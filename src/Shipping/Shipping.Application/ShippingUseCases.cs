@@ -9,7 +9,7 @@ namespace Shipping.Application;
 
 public static class ShippingErrors
 {
-    public static Error ShipmentNotFound(Guid shipmentId) => new("shipment.not-found", $"Shipment {shipmentId} does not exist.");
+    public static NotFoundError ShipmentNotFound(Guid shipmentId) => new("shipment.not-found", $"Shipment {shipmentId} does not exist.");
 }
 
 public sealed record DispatchShipment(Guid ShipmentId, string TrackingCode);
@@ -80,7 +80,7 @@ public sealed partial class CancelShipmentWhenOrderCancelled(
         {
             // The parcel left before the cancellation arrived. That is a business situation, not a
             // technical error: report it, and let a person or a follow-up process (a return) handle it.
-            LogTooLateToCancel(integrationEvent.OrderId, result.Error!.Code);
+            LogTooLateToCancel(integrationEvent.OrderId, result.Error.Code);
             return;
         }
 
