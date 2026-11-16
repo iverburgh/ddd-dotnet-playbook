@@ -100,6 +100,13 @@ From the same monorepo, each on its own:
 - [OpenTelemetry observability in .NET](https://github.com/iverburgh/dotnet-opentelemetry-observability-playbook) —
   traces, metrics and logs, with an outbox that keeps each integration event in the trace of the
   request that raised it.
+- [Azure SQL database as code](https://github.com/iverburgh/azure-sql-database-as-code-playbook) —
+  schema, migrations and seed data as a database project: the real-system alternative to the
+  sample's `EnsureCreated`.
+- [Service Bus settlement in Azure Functions](https://github.com/iverburgh/azure-functions-service-bus-settlement-playbook) —
+  complete, abandon or dead-letter: what happens to an integration event when its handler fails.
+- [Azure SQL disaster recovery](https://github.com/iverburgh/azure-sql-disaster-recovery-playbook) —
+  a guided point-in-time restore, and reconciling the integration events other contexts already saw.
 
 ## License
 
