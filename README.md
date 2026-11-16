@@ -93,6 +93,8 @@ From the same monorepo, each on its own:
   configuration as code, deployed and rolled back together with the application.
 - [Entra ID app registrations as code](https://github.com/iverburgh/entra-app-registrations-as-code-playbook) —
   app registrations, roles and access as code, and an API that turns those roles into policies.
+- [Circuit breakers on Azure Functions](https://github.com/iverburgh/azure-functions-circuit-breaker-playbook) —
+  a shared circuit breaker that stops the consumers of integration events while a dependency is down.
 
 ## License
 
